@@ -13,9 +13,14 @@
         <groupId>org.springframework.boot</groupId>
       </plugin>
       <plugin>
-        <artifactId>jib-maven-plugin</artifactId>
         <groupId>com.google.cloud.tools</groupId>
-        <version>3.3.1</version>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.4.4</version>
+        <configuration>
+          <to>
+            <image>europe-north1-docker.pkg.dev/home-lab-k8s/fact-service/fact-service-jib</image>
+          </to>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -93,9 +98,10 @@
       <version>8.2.0</version>
     </dependency>
     <dependency>
-      <artifactId>spring-boot-devtools</artifactId>
       <groupId>org.springframework.boot</groupId>
-      <scope>provided</scope>
+      <artifactId>spring-boot-devtools</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <artifactId>h2</artifactId>
