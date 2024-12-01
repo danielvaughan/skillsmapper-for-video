@@ -1,13 +1,8 @@
 package org.skillsmapper.factservice;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import org.skillsmapper.factservice.FactApplication.PubsubOutboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.CollectionModel;
@@ -28,32 +23,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping(value = "/api/facts", produces = "application/hal+json")
 public class FactController {
-
   private static final Logger logger = LoggerFactory.getLogger(FactController.class);
   private final FactRepository factRepository;
-  private final PubsubOutboundGateway messagingGateway;
-  private final ObjectMapper objectMapper;
+  private final FactChangedNotifier factChangedNotifier;
 
-  public void factsChanged(Fact fact) {
-    List<Fact> facts = factRepository.findByUser(fact.getUser());
-    FactsChanged factsChanged = new FactsChanged(fact.getUser(), facts, OffsetDateTime.now());
-    try {
-      String jsonString = objectMapper.writeValueAsString(factsChanged);
-      logger.info("Sending message to Pub/Sub: {}", jsonString);
-      messagingGateway.sendToPubsub(jsonString);
-    } catch (JsonProcessingException e) {
-      logger.error("Error serialising message send to Pub/Sub: {}", e.getMessage());
-    }
-  }
-
-  FactController(FactRepository factRepository, PubsubOutboundGateway messagingGateway) {
+  FactController(FactRepository factRepository, FactChangedNotifier factChangedNotifier) {
     this.factRepository = factRepository;
-    this.messagingGateway = messagingGateway;
-
-    objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    objectMapper.disable(SerializationFeature.WRITE_DATES_WITH_CONTEXT_TIME_ZONE);
+    this.factChangedNotifier = factChangedNotifier;
   }
 
   @GetMapping
@@ -77,11 +53,11 @@ public class FactController {
     Fact fact = new Fact();
     fact.setUser(authenticateJwt(headers));
     fact.setTimestamp(OffsetDateTime.now());
-    fact.setLevel(factCreateRequest.getLevel());
-    fact.setSkill(factCreateRequest.getSkill());
+    fact.setLevel(factCreateRequest.level());
+    fact.setSkill(factCreateRequest.skill());
     logger.debug("Saving fact: {}", fact);
     factRepository.save(fact);
-    factsChanged(fact);
+    factChangedNotifier.factsChanged(fact);
     return fact;
   }
 
@@ -108,7 +84,7 @@ public class FactController {
               if (fact.getUser().equals(authenticateJwt(headers))) {
                 logger.debug("Deleting fact: {}", id);
                 factRepository.deleteById(id);
-                factsChanged(fact);
+                factChangedNotifier.factsChanged(fact);
               } else {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "You are not allowed to delete this fact");
