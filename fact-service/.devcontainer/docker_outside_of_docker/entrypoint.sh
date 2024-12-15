@@ -1,8 +1,11 @@
 #!/bin/sh
 
-# kind
-arkade get kind
-sudo mv ~/.arkade/bin/kind /usr/local/bin/
+# For AMD64 / x86_64
+[ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-amd64
+# For ARM64
+[ $(uname -m) = aarch64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-arm64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
 
 kind delete cluster
 
@@ -35,19 +38,3 @@ data:
 		host: "localhost:5000"
 		help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 EOF
-
-# OpenFaaS
-arkade install openfaas
-kubectl rollout status -n openfaas deploy
-
-# faas-cli
-arkade get faas-cli
-sudo mv ~/.arkade/bin/faas-cli /usr/local/bin/
-
-faas-cli template pull
-
-# If basic auth is enabled, you can now log into your gateway:
-PASSWORD=$(kubectl get secret -n openfaas basic-auth -o jsonpath="{.data.basic-auth-password}" | base64 --decode; echo)
-echo -n $PASSWORD | faas-cli login --username admin --password-stdin
-
-echo "> Listening on http://admin:$PASSWORD@localhost:8080/"
