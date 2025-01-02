@@ -4,9 +4,11 @@ metadata:
   name: fact-service
 build:
   artifacts:
-    - image: europe-north1-docker.pkg.dev/home-lab-k8s/fact-service/fact-service-skaffold
-      jib:
-        project: org.skillsmapper:fact-service
+    - image: fact-service-skaffold
+      #buildpacks: {}
+      jib: { }
+  local:
+    push: false
 manifests:
   rawYaml:
     - k8s/*.yaml

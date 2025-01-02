@@ -1,1 +1,0 @@
-/Users/danielvaughan/Development/git/book/gcp-book/src/project-structure.md

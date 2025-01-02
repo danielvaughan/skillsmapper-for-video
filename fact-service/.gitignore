@@ -163,3 +163,4 @@ terraform.rc
 /k8s/configmap.yaml
 /fact-service-sa.json
 /env.yaml
+/set-env.sh

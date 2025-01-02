@@ -51,6 +51,11 @@ pack build $DOCKER_REPO/fact-service-pack \
 mvn compile jib:build
 ```
 
+Docker build only
+
+```shell
+mvn jib:dockerBuild
+```
 ## Running
 
 ### Running with Maven
@@ -67,16 +72,65 @@ mvn clean install spring-boot:run
 
 ### Running with Skaffold
 
-## Integrating
+gcloud auth configure-docker europe-north1-docker.pkg.dev
 
-### With Maven and h2 and Mocks
+export DOCKER_REPO=danielvaughan
+
+export SKAFFOLD_DEFAULT_REPO=$DOCKER_REPO
+
+https://github.com/GoogleContainerTools/skaffold/tree/main/examples/jib
+
+## Running
+
+### With Docker Compose
+
+
+## Testing
+
+### Local Unit tests with mocks
+
+Using H2 for Development and Unit Testing
+Mock PubSub (mokito) (https://stackoverflow.com/questions/31739455/how-to-do-junit-test-with-google-cloud-pub-sub)
+https://medium.com/@claudiorauso/local-testing-spring-gcp-pub-sub-e2028b69d8e5
+Firebase pubsub emulator
+
+## Local integration tests
+
+Using Testcontainers for Integration Testing
+* PostgeSQL container
+* PubSub Emulator Container
+
+## Local system tests
+
+Standup in KinD and run a jMeter-type test
+* PostgeSQL container
+* PubSub Emulator Container
 
 ### With Docker Compose and TestContainers
 
 ### With Skaffold and Containers
+
+## With Pub/Sub Emulator
+
+* https://java.testcontainers.org/modules/gcloud/
+* https://github.com/saturnism/testcontainers-gcloud-examples/blob/main/springboot/pubsub-example/src/test/java/com/example/springboot/pubsub/PubSubIntegrationTests.java
+
+```xml
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>gcloud</artifactId>
+    <version>1.20.4</version>
+    <scope>test</scope>
+</dependency>
+```
+
+### Skaffold Post Deploy Hook
+
+### Skaffold Jobs
 
 ## Deploying
 
 ### To Cloud Run
 
 ### To GKE Autopoliot
+

@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: jib-pipeline
+spec:
+  workspaces:
+    - name: source-code
+  tasks:
+    - name: build
+      taskRef:
+        name: jib-maven
+      workspaces:
+        - name: source-code
+          workspace: source-code
+      params:
+        - name: IMAGE
+          value: your-image-registry/your-image:latest
+    - name: deploy
+      taskRef:
+        name: skaffold-deploy
+      workspaces:
+        - name: source-code
+          workspace: source-code
