@@ -1,23 +1,37 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: jib-pipeline
+  name: clone-read
 spec:
+  description: |
+    This pipeline clones a git repo, then echoes the README file to the stout.
+  params:
+    - name: repo-url
+      type: string
+      description: The git repo URL to clone from.
   workspaces:
-    - name: source-code
+    - name: shared-data
+      description: |
+        This workspace contains the cloned repo files, so they can be read by the
+        next task.
+    - name: git-credentials
+      description: My ssh credentials
   tasks:
-    - name: build
+    - name: fetch-source
       taskRef:
-        name: jib-maven
+        name: git-clone
       workspaces:
-        - name: source-code
-          workspace: source-code
+        - name: output
+          workspace: shared-data
+        - name: ssh-directory
+          workspace: git-credentials
       params:
-        - name: IMAGE
-          value: your-image-registry/your-image:latest
-    - name: deploy
+        - name: url
+          value: $(params.repo-url)
+    - name: show-readme
+      runAfter: ["fetch-source"]
       taskRef:
-        name: skaffold-deploy
+        name: show-readme
       workspaces:
-        - name: source-code
-          workspace: source-code
+        - name: source
+          workspace: shared-data
